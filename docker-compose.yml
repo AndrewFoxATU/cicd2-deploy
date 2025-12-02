@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: tyre_user
+      POSTGRES_PASSWORD: tyre_pass
+      POSTGRES_DB: tyre_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - tyre_data:/var/lib/postgresql/data
+    networks:
+      - labnet
+
+  tyres_service:
+    image: ghcr.io/andrewfoxatu/cicd2-tyres-service/tyres_service:latest
+    env_file: ./backend/tyres_service/.env
+    depends_on:
+      - postgres
+    ports:
+      - "8001:8000"
+    networks:
+      - labnet
+
+  orders_service:
+    image: ghcr.io/andrewfoxatu/cicd2-orders-service/orders_service:latest
+    env_file: ./backend/orders_service/.env
+    depends_on:
+      - postgres
+    ports:
+      - "8002:8000"
+    networks:
+      - labnet
+
+networks:
+  labnet:
+
+volumes:
+  tyre_data:
