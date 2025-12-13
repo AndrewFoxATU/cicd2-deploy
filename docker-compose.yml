@@ -1,10 +1,11 @@
 services:
   postgres_tyres:
     image: postgres:15
+    env_file: ./.env
     environment:
-      POSTGRES_USER: tyre_user
-      POSTGRES_PASSWORD: tyre_pass
-      POSTGRES_DB: tyre_db
+      POSTGRES_USER: ${TYRES_DB_USER}
+      POSTGRES_PASSWORD: ${TYRES_DB_PASSWORD}
+      POSTGRES_DB: ${TYRES_DB_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -14,10 +15,11 @@ services:
 
   postgres_users:
     image: postgres:15
+    env_file: ./.env
     environment:
-      POSTGRES_USER: users_user
-      POSTGRES_PASSWORD: users_pass
-      POSTGRES_DB: users_db
+      POSTGRES_USER: ${USERS_DB_USER}
+      POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
+      POSTGRES_DB: ${USERS_DB_NAME}
     ports:
       - "5433:5432"
     volumes:
@@ -28,6 +30,12 @@ services:
   tyres_service:
     image: ghcr.io/andrewfoxatu/cicd2-tyres-service/tyres_service:latest
     env_file: ./.env
+    environment:
+      POSTGRES_HOST: ${TYRES_DB_HOST}
+      POSTGRES_PORT: ${TYRES_DB_PORT}
+      POSTGRES_DB: ${TYRES_DB_NAME}
+      POSTGRES_USER: ${TYRES_DB_USER}
+      POSTGRES_PASSWORD: ${TYRES_DB_PASSWORD}
     depends_on:
       - postgres_tyres
     ports:
@@ -38,20 +46,16 @@ services:
   users_service:
     image: ghcr.io/andrewfoxatu/cicd2-users-service/users_service:latest
     env_file: ./.env
+    environment:
+      POSTGRES_HOST: ${USERS_DB_HOST}
+      POSTGRES_PORT: ${USERS_DB_PORT}
+      POSTGRES_DB: ${USERS_DB_NAME}
+      POSTGRES_USER: ${USERS_DB_USER}
+      POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
     depends_on:
       - postgres_users
     ports:
       - "8003:8000"
-    networks:
-      - labnet
-
-  orders_service:
-    image: ghcr.io/andrewfoxatu/cicd2-orders-service/orders_service:latest
-    env_file: ./.env
-    depends_on:
-      - postgres_tyres
-    ports:
-      - "8002:8000"
     networks:
       - labnet
 
