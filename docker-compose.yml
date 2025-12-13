@@ -59,6 +59,20 @@ services:
     networks:
       - labnet
 
+  frontend:
+    image: ghcr.io/andrewfoxatu/cicd2-frontend/frontend:latest
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - users_service
+      - tyres_service
+    networks:
+      - labnet
+
+
+
 networks:
   labnet:
 
