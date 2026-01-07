@@ -27,6 +27,20 @@ services:
     networks:
       - labnet
 
+  postgres_orders:
+    image: postgres:15
+    env_file: ./.env
+    environment:
+      POSTGRES_USER: ${ORDERS_DB_USER}
+      POSTGRES_PASSWORD: ${ORDERS_DB_PASSWORD}
+      POSTGRES_DB: ${ORDERS_DB_NAME}
+    ports:
+      - "5434:5432"
+    volumes:
+      - orders_data:/var/lib/postgresql/data
+    networks:
+      - labnet
+
   tyres_service:
     image: ghcr.io/andrewfoxatu/cicd2-tyres-service/tyres_service:latest
     env_file: ./.env
@@ -59,6 +73,73 @@ services:
     networks:
       - labnet
 
+  orders_service:
+    image: ghcr.io/andrewfoxatu/cicd2-orders-service/orders_service:latest
+    env_file: ./.env
+    environment:
+      ORDERS_DB_HOST: ${ORDERS_DB_HOST}
+      ORDERS_DB_PORT: ${ORDERS_DB_PORT}
+      ORDERS_DB_NAME: ${ORDERS_DB_NAME}
+      ORDERS_DB_USER: ${ORDERS_DB_USER}
+      ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD}
+
+      TYRES_SERVICE_URL: ${TYRES_SERVICE_BASE_URL}
+      USERS_SERVICE_URL: ${USERS_SERVICE_BASE_URL}
+      RABBIT_URL: ${RABBIT_URL}
+    depends_on:
+      - postgres_orders
+      - tyres_service
+      - users_service
+    ports:
+      - "8002:8000"
+    networks:
+      - labnet
+
+
+  notifications_service:
+    image: ghcr.io/andrewfoxatu/cicd2-notifications-service/notifications_service:latest
+    env_file: ./.env
+    environment:
+      RABBIT_URL: ${RABBIT_URL}
+    command: ["python", "-m", "app.notifications_worker"]
+    depends_on:
+      - users_service
+      - tyres_service
+    networks:
+      - labnet
+
+  tyres_rpc_worker:
+    image: ghcr.io/andrewfoxatu/cicd2-tyres-service/tyres_service:latest
+    env_file: ./.env
+    environment:
+      RABBIT_URL: ${RABBIT_URL}
+      POSTGRES_HOST: ${TYRES_DB_HOST}
+      POSTGRES_PORT: ${TYRES_DB_PORT}
+      POSTGRES_DB: ${TYRES_DB_NAME}
+      POSTGRES_USER: ${TYRES_DB_USER}
+      POSTGRES_PASSWORD: ${TYRES_DB_PASSWORD}
+    command: ["python", "-m", "app.tyre_rpc_worker"]
+    depends_on:
+      - postgres_tyres
+    networks:
+      - labnet
+
+  users_rpc_worker:
+    image: ghcr.io/andrewfoxatu/cicd2-users-service/users_service:latest
+    env_file: ./.env
+    environment:
+      RABBIT_URL: ${RABBIT_URL}
+      POSTGRES_HOST: ${USERS_DB_HOST}
+      POSTGRES_PORT: ${USERS_DB_PORT}
+      POSTGRES_DB: ${USERS_DB_NAME}
+      POSTGRES_USER: ${USERS_DB_USER}
+      POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
+    command: ["python", "-m", "app.user_rpc_worker"]
+    depends_on:
+      - postgres_users
+    networks:
+      - labnet
+
   frontend:
     image: ghcr.io/andrewfoxatu/cicd2-frontend/frontend:latest
     env_file:
@@ -79,3 +160,4 @@ networks:
 volumes:
   tyre_data:
   users_data:
+  orders_data:
