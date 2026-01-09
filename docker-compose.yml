@@ -10,6 +10,7 @@ services:
       - "5432:5432"
     volumes:
       - tyre_data:/var/lib/postgresql/data
+      - ./postgres-init-tyres:/docker-entrypoint-initdb.d
     networks:
       - labnet
 
@@ -24,7 +25,7 @@ services:
       - "5433:5432"
     volumes:
       - users_data:/var/lib/postgresql/data
-      - ./postgres-init:/docker-entrypoint-initdb.d
+      - ./postgres-init-users:/docker-entrypoint-initdb.d
     networks:
       - labnet
 

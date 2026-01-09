@@ -1,0 +1,39 @@
+size,load_rate,speed_rate,Brand,Model,Season,Supplier,Fuel_Efficiency,noise_level,weather_efficiency,ev_approved,cost,quantity
+205/55R16,94,V,Kormoran,Road Proformance,summer,Tractormotors,C,71,C,FALSE,36.25,13
+205/55R16,91,V,Faroad,FRD 16,summer,KeithRevins,C,72,B,FALSE,26.99,11
+195/65R15,94,H,Kormoran,Road Proformance,summer,Tractormotors,C,71,C,FALES,35.15,10
+205/55R16,91,H,Michelin,Primacy 4,summer,Michelin PLC,A,69,A,TRUE,69.25,10
+185/60R15,87,H,Faroad,FRD 16,summer,KeithRevins,C,70,B,FALES,31.5,9
+225/50R17,98,H,Faroad,FRD 16,summer,KeithRevins,C,73,B,FALES,42.56,8
+215/55R17,94,V,Faroad,FRD 16,summer,KeithRevins,C,72,B,FALES,36.58,8
+225/50R17,98,V,Kormoran,UHP,summer,Tractormotors,C,72,C,FALES,59.56,8
+205/60R16,92,V,Faroad,FRD 16,summer,KeithRevins,C,71,B,FALES,38.56,8
+205/60R16,96,H,Kormoran,Road Proformance,summer,Tractormotors,C,71,C,FALES,45.52,8
+205/55R16,91,H,Hankook,Ventus Prime 4,summer,Tyre Call,C,69,B,FALSE,45.95,8
+175/70R13,77,T,Faroad,FRD 16,summer,KeithRevins,C,68,C,FALES,28.69,7
+175/65R14,82,T,Faroad,FRD 16,summer,KeithRevins,C,70,B,FALES,29.89,6
+185/50R15,87,H,Kormoran,Road Proformance,summer,Tractormotors,C,70,C,FALES,38.94,5
+265/70R16,112,M,Faroad,FRD66,winter,KeithRevins,D,74,E,FALES,59.98,4
+285/60R18,118,M,BF Goodrich,Mud Terrain,winter,KBT,E,74,E,FALES,159.21,4
+255/35R20,97,W,Faroad,FRD 16,summer,KeithRevins,C,73,b,FALES,59.83,4
+265/65R17,112,T,Faroad,FDR 616,all season,KeithRevins,D,73,C,FALES,61.53,4
+195/65R15,91,H,Accorn ,Cross Terrain,all season,KeithRevins,C,72,C,FALES,38.95,4
+225/50R17,98,V,UNIROYAL,Rain sport 3,summer,Contintial,A,72,A,TRUE,85.97,4
+225/40R18,92,Y,KUMHO ,ECSTA SPORT,summer,Premier Tyres,C,72,A,FALES,79.12,4
+225/40R18,92,W,Faroad,FRD 16,summer,KeithRevins,C,72,B,FALES,49.98,4
+235/45R19,101,W,Faroad,FRD 16,summer,KeithRevins,C,72,B,FALES,59.76,4
+205/55R16,91,H,Michelin,Cross Climate 2,  all season,Michelin PLC,B,71,B,TRUE,75.95,4
+175/65R14,86,T,Petlas,Mulit action,all season,KBT,C,71,C,FALES,35.36,4
+205/60R16,92,V,Michelin,Primacy 4,summer,Michelin PLC,A,71,A,TRUE,72.25,4
+215/55R17,94,H,Michelin,Cross Climate 2,all season,Michelin PLC,B,71,B,FALES,116.98,4
+245/45R18,100,H,Faroad,FRD 16,summer,KeithRevins,C,71,B,FALES,47.98,4
+235/45R19,101,V,KUMHO ,ECSTA SPORT,summer,Premier Tyres,B,71,B,TRUE,98.24,4
+195/65R15,91,H,Michelin,Primacy 4,summer,Michelin PLC,A,70,A,TRUE,59.98,4
+215/55R17,94,V,Michelin,Primacy 4,summer,Michelin PLC,A,70,A,TRUE,110.21,4
+245/45R18,100,V,Kormoran,UHP,summer,Tractormotors,C,70,C,FALES,65.24,4
+195/65R15,91,T,Avon,ZT7,summer,Premier Tyres,C,69,B,FALES,39.51,4
+185/60R15,87,H,Goodyear ,Efficient Grip,summer,Tyre Call,A,69,B,TRUE,58.75,4
+175/65R14,82,T,Hankook,Kinergy Eco 2,summer,Tractormotors,A,69,A,TRUE,45.95,4
+255/35R20,97,Y,Firestone,Roadhawk,summer,Bridgestone,C,73,a,TRUE,89.52,2
+245/45R18,100,Y,Hankook,VENTUS EVO 3,summer,Tractormotors,A,70,A,TRUE,110.52,2
+225/40R18,92,V,Kormoran,UHP,summer,Tractormotors,C,72,C,FALES,59.78,1
