@@ -24,6 +24,7 @@ services:
       - "5433:5432"
     volumes:
       - users_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
     networks:
       - labnet
 
