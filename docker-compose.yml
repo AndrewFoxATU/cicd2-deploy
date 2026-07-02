@@ -85,6 +85,8 @@ services:
       POSTGRES_PASSWORD: ${TYRES_DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      RETAIL_MARKUP: ${RETAIL_MARKUP:-1.35}
+      RUN_MIGRATIONS: "1"
     depends_on:
       postgres_tyres:
         condition: service_healthy
@@ -106,6 +108,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      RUN_MIGRATIONS: "1"
     depends_on:
       postgres_users:
         condition: service_healthy
@@ -129,6 +132,7 @@ services:
       USERS_SERVICE_URL: ${USERS_SERVICE_BASE_URL}
       RABBIT_URL: amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@rabbitmq:5672/
       JWT_SECRET: ${JWT_SECRET}
+      RUN_MIGRATIONS: "1"
     depends_on:
       postgres_orders:
         condition: service_healthy

@@ -71,6 +71,13 @@ The system manages money and stock, so this comes before any new features.
 
 ## Phase 2 — Data integrity & correctness (~1–2 weeks)
 
+> **Status: done** (except the cross-service CI smoke test, deferred) — Alembic
+> migrations in all three services with automatic baseline stamping of existing
+> databases; atomic conditional stock decrement in the tyres service with
+> compensation from the orders service; DB CHECK constraints; `RETAIL_MARKUP`
+> is now configuration; sale event publishing is best-effort so a broker outage
+> can't fail a stored sale.
+
 1. **Alembic migrations** in each service; replace `create_all()` with a migration step in
    the container entrypoint (or a deploy step). This is the prerequisite for every future
    schema change on live data.
