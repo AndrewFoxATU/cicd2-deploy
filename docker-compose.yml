@@ -9,6 +9,12 @@ services:
     volumes:
       - tyre_data:/var/lib/postgresql/data
       - ./postgres-init-tyres:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TYRES_DB_USER} -d ${TYRES_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -22,6 +28,12 @@ services:
     volumes:
       - users_data:/var/lib/postgresql/data
       - ./postgres-init-users:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USERS_DB_USER} -d ${USERS_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -34,6 +46,31 @@ services:
       POSTGRES_DB: ${ORDERS_DB_NAME}
     volumes:
       - orders_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ORDERS_DB_USER} -d ${ORDERS_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - labnet
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+    ports:
+      # management UI, reachable only from this machine
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -49,9 +86,11 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     depends_on:
-      - postgres_tyres
+      postgres_tyres:
+        condition: service_healthy
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -68,9 +107,11 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     depends_on:
-      - postgres_users
+      postgres_users:
+        condition: service_healthy
     ports:
-      - "8003:8000"
+      - "127.0.0.1:8003:8000"
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -86,14 +127,20 @@ services:
 
       TYRES_SERVICE_URL: ${TYRES_SERVICE_BASE_URL}
       USERS_SERVICE_URL: ${USERS_SERVICE_BASE_URL}
-      RABBIT_URL: ${RABBIT_URL}
+      RABBIT_URL: amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@rabbitmq:5672/
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
-      - postgres_orders
-      - tyres_service
-      - users_service
+      postgres_orders:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      tyres_service:
+        condition: service_started
+      users_service:
+        condition: service_started
     ports:
-      - "8002:8000"
+      - "127.0.0.1:8002:8000"
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -102,11 +149,16 @@ services:
     image: ghcr.io/andrewfoxatu/cicd2-notifications-service/notifications_service:latest
     env_file: ./.env
     environment:
-      RABBIT_URL: ${RABBIT_URL}
+      RABBIT_URL: amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@rabbitmq:5672/
     command: ["python", "-m", "app.notifications_worker"]
     depends_on:
-      - users_service
-      - tyres_service
+      rabbitmq:
+        condition: service_healthy
+      users_service:
+        condition: service_started
+      tyres_service:
+        condition: service_started
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -114,7 +166,7 @@ services:
     image: ghcr.io/andrewfoxatu/cicd2-tyres-service/tyres_service:latest
     env_file: ./.env
     environment:
-      RABBIT_URL: ${RABBIT_URL}
+      RABBIT_URL: amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@rabbitmq:5672/
       POSTGRES_HOST: ${TYRES_DB_HOST}
       POSTGRES_PORT: ${TYRES_DB_PORT}
       POSTGRES_DB: ${TYRES_DB_NAME}
@@ -122,7 +174,11 @@ services:
       POSTGRES_PASSWORD: ${TYRES_DB_PASSWORD}
     command: ["python", "-m", "app.tyre_rpc_worker"]
     depends_on:
-      - postgres_tyres
+      postgres_tyres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -130,7 +186,7 @@ services:
     image: ghcr.io/andrewfoxatu/cicd2-users-service/users_service:latest
     env_file: ./.env
     environment:
-      RABBIT_URL: ${RABBIT_URL}
+      RABBIT_URL: amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@rabbitmq:5672/
       POSTGRES_HOST: ${USERS_DB_HOST}
       POSTGRES_PORT: ${USERS_DB_PORT}
       POSTGRES_DB: ${USERS_DB_NAME}
@@ -138,7 +194,11 @@ services:
       POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
     command: ["python", "-m", "app.user_rpc_worker"]
     depends_on:
-      - postgres_users
+      postgres_users:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -147,10 +207,13 @@ services:
     env_file:
       - ./.env
     ports:
+      # reachable from other devices on the shop network; change to
+      # "127.0.0.1:3000:3000" to restrict to this machine only
       - "3000:3000"
     depends_on:
       - users_service
       - tyres_service
+    restart: unless-stopped
     networks:
       - labnet
 
@@ -163,3 +226,4 @@ volumes:
   tyre_data:
   users_data:
   orders_data:
+  rabbit_data:

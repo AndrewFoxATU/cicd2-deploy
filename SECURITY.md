@@ -10,10 +10,10 @@
 
 ## Manual actions still required (only the account owner can do these)
 
-1. **Rotate the CloudAMQP credentials NOW.** The old `RABBIT_URL` (user `tgzsmwfa` on
-   `stingray.rmq.cloudamqp.com`) was committed to git and must be treated as public.
-   In the CloudAMQP console: rotate the password (or delete and recreate the instance),
-   then put the new URL only in the server's local `.env`.
+1. **Delete the CloudAMQP instance.** RabbitMQ now runs as a local container
+   (`rabbitmq` service in docker-compose), so the external account is no longer needed.
+   The old `RABBIT_URL` (user `tgzsmwfa` on `stingray.rmq.cloudamqp.com`) was committed
+   to git and must be treated as public — deleting the instance revokes it for good.
 2. **Rotate the Postgres passwords** in `.env` (they were committed too):
    `openssl rand -hex 24` for each of `TYRES_DB_PASSWORD`, `USERS_DB_PASSWORD`,
    `ORDERS_DB_PASSWORD`. On an existing deployment also run `ALTER USER ... WITH PASSWORD ...`

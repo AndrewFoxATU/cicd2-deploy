@@ -86,28 +86,29 @@ The system manages money and stock, so this comes before any new features.
    the sell edge cases above need coverage), and add one cross-service smoke test that runs
    the full sell flow against docker-compose in CI.
 
-## Phase 3 — Deployable production environment (~1–2 weeks)
+## Phase 3 — Production environment (local-only, ~2–4 days)
 
-Recommended shape: **one VPS (e.g. Hetzner/DigitalOcean, ~€20–40/mo) running docker compose,
-plus managed extras**. Kubernetes is not justified at this scale; the compose setup you have
-is nearly right already.
+> **Decision: the business runs this on a machine in the shop — no paid servers.**
+> That removes the domain/HTTPS/VPS work entirely. The trade-offs to accept: the app
+> is only reachable on the shop network, and that machine is now a business-critical
+> box (keep it on, keep it backed up).
 
-1. Buy a domain; put **Caddy or Traefik** in front as reverse proxy with automatic HTTPS.
-   Only ports 80/443 exposed; frontend and services live on the internal network.
-2. Split compose files: `docker-compose.yml` (shared) + `docker-compose.prod.yml` /
-   `docker-compose.dev.yml`. Add `healthcheck:` blocks (the `/health` endpoints already
-   exist) and `restart: unless-stopped`.
-3. **Continuous deployment**: extend each service's CI so a push to `main` triggers a deploy
-   — simplest reliable option is a GitHub Actions job that SSHes to the VPS and runs
-   `docker compose pull <service> && docker compose up -d --no-deps <service>` (this is
-   already the documented manual process; automate exactly it). Keep `workflow_dispatch`
-   as the manual rollback lever, deploying a specific SHA tag.
-4. **Backups**: nightly `pg_dump` of all three databases to off-site storage (S3/B2),
-   with a documented and *tested* restore procedure. This is non-negotiable once real
-   sales data exists.
-5. Decide RabbitMQ hosting: keeping CloudAMQP (free/low tier) is fine once credentials are
-   rotated and stored as secrets; alternatively add a `rabbitmq:3-management` container to
-   compose to remove the external dependency.
+> **Status: done in code** — self-hosted RabbitMQ container (CloudAMQP no longer
+> needed), healthchecks + `restart: unless-stopped` on every service, API/broker
+> ports bound to 127.0.0.1, README rewritten with setup/update/backup instructions.
+
+1. ~~Buy a domain / reverse proxy / HTTPS~~ — not needed while local-only. The frontend
+   is served on the LAN over HTTP; revisit if the business ever wants remote access
+   (then: Tailscale first, public VPS second).
+2. **RabbitMQ self-hosted** in compose (`rabbitmq:3-management`) — no external account,
+   and deleting the old CloudAMQP instance revokes the leaked credential for good.
+3. **Deployment** stays manual and simple: `docker compose pull && docker compose up -d`
+   after CI publishes new images. No SSH automation needed for a machine you can walk to.
+4. **Backups are still non-negotiable**: a scheduled (cron / Task Scheduler) `pg_dump`
+   of all three databases, copied to a USB drive or free-tier cloud storage — an
+   off-machine copy is the whole point. Test the restore once.
+5. Make the shop machine resilient: Docker set to start on boot (compose services
+   already have `restart: unless-stopped`), disable sleep/hibernate.
 
 ## Phase 4 — Make notifications real (~3–5 days)
 
@@ -118,15 +119,17 @@ is nearly right already.
 3. Decide recipients with the business: owner gets sale alerts? customer gets a receipt
    (needs a customer email captured at sale time — small schema + UI addition)?
 
-## Phase 5 — Observability & operations (~1 week, can overlap Phase 4)
+## Phase 5 — Observability & operations (lightweight, local-only)
 
-1. Centralised logs: structured JSON logging in the services; ship container logs somewhere
-   queryable (Grafana Cloud free tier, or Loki on the VPS).
-2. Uptime monitoring + alerts on the public URL and `/health` endpoints (UptimeRobot /
-   Better Stack free tiers) so you hear about outages before the staff do.
-3. Error tracking (Sentry free tier) in both FastAPI services and Next.js.
-4. A one-page `RUNBOOK.md` in cicd2-deploy: how to deploy, roll back, restore a backup,
-   rotate a secret, and check the queues.
+External uptime monitoring makes little sense for a LAN-only app; keep this lean:
+
+1. Error tracking (Sentry free tier) in the FastAPI services and Next.js — still worth
+   it, it works fine from a local machine and catches bugs staff never report.
+2. `docker compose ps` health status is the uptime check; healthchecks are already in
+   place. A tiny cron job that restarts unhealthy containers and appends to a log file
+   covers the rest.
+3. A one-page `RUNBOOK.md` in cicd2-deploy: update, roll back (pin a SHA image tag),
+   restore a backup, rotate a secret, check the RabbitMQ management UI.
 
 ## Phase 6 — Business features (after go-live, prioritise with the owner)
 
@@ -154,8 +157,11 @@ Not needed for go-live, listed for the roadmap conversation:
 
 ## Decisions needed from the business side
 
-1. Hosting budget and provider (plan assumes a single ~€20–40/mo VPS — recommended).
-2. Domain name.
-3. Email provider and who receives sale notifications (owner alert vs customer receipt vs both).
+1. ~~Hosting budget~~ — **decided: local-only on a shop machine, €0/mo.**
+2. ~~Domain name~~ — not needed while local-only.
+3. Email provider and who receives sale notifications (owner alert vs customer receipt vs
+   both). Free tiers (e.g. Resend, Brevo) send fine from a local machine.
 4. Whether sales need customer details/VAT receipts from day one (affects Phase 2 schema).
-5. RabbitMQ: stay on CloudAMQP (managed, rotate creds) or self-host in compose (recommended: self-host, one less external account).
+5. ~~RabbitMQ hosting~~ — **decided: self-hosted container in compose; delete the CloudAMQP account.**
+6. Which machine in the shop runs the stack, and where the nightly backup copy goes
+   (USB drive vs free cloud storage).
