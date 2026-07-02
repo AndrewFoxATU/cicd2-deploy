@@ -6,8 +6,6 @@ services:
       POSTGRES_USER: ${TYRES_DB_USER}
       POSTGRES_PASSWORD: ${TYRES_DB_PASSWORD}
       POSTGRES_DB: ${TYRES_DB_NAME}
-    ports:
-      - "5432:5432"
     volumes:
       - tyre_data:/var/lib/postgresql/data
       - ./postgres-init-tyres:/docker-entrypoint-initdb.d
@@ -21,8 +19,6 @@ services:
       POSTGRES_USER: ${USERS_DB_USER}
       POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
       POSTGRES_DB: ${USERS_DB_NAME}
-    ports:
-      - "5433:5432"
     volumes:
       - users_data:/var/lib/postgresql/data
       - ./postgres-init-users:/docker-entrypoint-initdb.d
@@ -36,8 +32,6 @@ services:
       POSTGRES_USER: ${ORDERS_DB_USER}
       POSTGRES_PASSWORD: ${ORDERS_DB_PASSWORD}
       POSTGRES_DB: ${ORDERS_DB_NAME}
-    ports:
-      - "5434:5432"
     volumes:
       - orders_data:/var/lib/postgresql/data
     networks:
@@ -52,6 +46,8 @@ services:
       POSTGRES_DB: ${TYRES_DB_NAME}
       POSTGRES_USER: ${TYRES_DB_USER}
       POSTGRES_PASSWORD: ${TYRES_DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     depends_on:
       - postgres_tyres
     ports:
@@ -68,6 +64,9 @@ services:
       POSTGRES_DB: ${USERS_DB_NAME}
       POSTGRES_USER: ${USERS_DB_USER}
       POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     depends_on:
       - postgres_users
     ports:
@@ -88,6 +87,7 @@ services:
       TYRES_SERVICE_URL: ${TYRES_SERVICE_BASE_URL}
       USERS_SERVICE_URL: ${USERS_SERVICE_BASE_URL}
       RABBIT_URL: ${RABBIT_URL}
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       - postgres_orders
       - tyres_service

@@ -38,6 +38,9 @@ What blocks real-world use (found in the code):
 
 ## Phase 0 — Security triage (do immediately, ~1 day)
 
+> **Status: done in code** — `.env` untracked, ports closed, `.env.example` added.
+> The credential rotation steps (CloudAMQP, Postgres) are manual: see `SECURITY.md`.
+
 These are cheap and urgent; everything else can wait, this can't.
 
 1. **Rotate the CloudAMQP credentials** (the current ones are public to anyone with repo access),
@@ -49,6 +52,10 @@ These are cheap and urgent; everything else can wait, this can't.
 4. Run GitHub secret scanning on all six repos to catch anything else.
 
 ## Phase 1 — Real authentication & authorization (~1–2 weeks)
+
+> **Status: done** — bcrypt hashing (with transparent upgrade of legacy plaintext rows
+> on first login), JWT login, httpOnly-cookie sessions in the frontend, server-side
+> role enforcement on every endpoint, orders→tyres/users service tokens, CORS from env.
 
 The system manages money and stock, so this comes before any new features.
 
